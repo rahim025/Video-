@@ -16,6 +16,7 @@ class MainActivity : Activity() {
 
     private val pickCode = 1001
     private lateinit var status: TextView
+    private lateinit var soundBtn: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,17 +42,25 @@ class MainActivity : Activity() {
         refreshStatus()
 
         val pick = Button(this).apply {
-            text = "1. Choisir une vidéo"
+            text = "1. Choisir une vidéo (galerie)"
             setOnClickListener { pickVideo() }
         }
 
+        soundBtn = Button(this).apply {
+            setOnClickListener {
+                Prefs.setMuted(this@MainActivity, !Prefs.isMuted(this@MainActivity))
+                refreshSound()
+            }
+        }
+        refreshSound()
+
         val set = Button(this).apply {
-            text = "2. Définir comme fond d'écran"
+            text = "3. Définir comme fond d'écran"
             setOnClickListener { setWallpaper() }
         }
 
         val hint = TextView(this).apply {
-            text = "À l'étape 2, choisis « Écran d'accueil et de verrouillage » si Android te le propose."
+            text = "À l'étape 3, choisis « Écran de verrouillage » ou « Accueil et verrouillage » si Android te le propose. Le changement de son s'applique quand l'écran se rallume."
             textSize = 14f
             gravity = Gravity.CENTER
             setPadding(0, pad, 0, 0)
@@ -60,6 +69,7 @@ class MainActivity : Activity() {
         root.addView(title)
         root.addView(status)
         root.addView(pick)
+        root.addView(soundBtn)
         root.addView(set)
         root.addView(hint)
         setContentView(root)
@@ -70,6 +80,13 @@ class MainActivity : Activity() {
             "Aucune vidéo choisie"
         else
             "Vidéo choisie ✓"
+    }
+
+    private fun refreshSound() {
+        soundBtn.text = if (Prefs.isMuted(this))
+            "2. Son : coupé (appuie pour activer)"
+        else
+            "2. Son : activé (appuie pour couper)"
     }
 
     private fun pickVideo() {

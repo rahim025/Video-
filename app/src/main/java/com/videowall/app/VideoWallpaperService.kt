@@ -25,6 +25,7 @@ class VideoWallpaperService : WallpaperService() {
                 if (player == null || saved != currentUri) {
                     startPlayer(surfaceHolder)
                 } else {
+                    applyVolume()
                     try { player?.start() } catch (_: Exception) {}
                 }
             } else {
@@ -42,6 +43,11 @@ class VideoWallpaperService : WallpaperService() {
             super.onDestroy()
         }
 
+        private fun applyVolume() {
+            val v = if (Prefs.isMuted(applicationContext)) 0f else 1f
+            try { player?.setVolume(v, v) } catch (_: Exception) {}
+        }
+
         private fun startPlayer(holder: SurfaceHolder) {
             releasePlayer()
             val uriString = Prefs.getVideoUri(applicationContext) ?: return
@@ -51,11 +57,13 @@ class VideoWallpaperService : WallpaperService() {
                 mp.setSurface(holder.surface)
                 mp.setDataSource(applicationContext, Uri.parse(uriString))
                 mp.isLooping = true
-                mp.setVolume(0f, 0f)
                 try {
                     mp.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING)
                 } catch (_: Exception) {}
-                mp.setOnPreparedListener { if (isVisible) it.start() }
+                mp.setOnPreparedListener {
+                    applyVolume()
+                    if (isVisible) it.start()
+                }
                 mp.setOnErrorListener { _, _, _ -> true }
                 mp.prepareAsync()
                 player = mp
